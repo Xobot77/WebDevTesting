@@ -1,0 +1,586 @@
+<html>
+	<head>
+		<title>ThreeJS</title>
+		<style>
+			body 
+			{
+				margin: 0;
+			}
+			
+			canvas 
+			{
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+
+<body>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/103/three.js"></script>
+
+	<script>
+        //Import Three.js
+
+        // Libary for functions returning 2d shapes
+        var Shape2D = {
+
+        GetSquare: function()
+        {
+            var squarePoints = 
+            [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0, 1),
+                new THREE.Vector2(1, 1),
+                new THREE.Vector2(1, 0)
+            ]
+
+            return squarePoints;
+        },
+
+        GetIsometricTriangle: function()
+        {
+            var trianglePoints = 
+            [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.25, 1),
+                new THREE.Vector2(0.5, 0)
+            ]
+
+            return trianglePoints;
+        },
+
+        GetEvenCross: function() 
+        {
+            var evenCrossPoints = 
+            [
+                new THREE.Vector2(1,0),
+                new THREE.Vector2(2,-1),
+                new THREE.Vector2(3,0),
+                new THREE.Vector2(4,-1),
+                new THREE.Vector2(3,-2),
+                new THREE.Vector2(4,-3),
+                new THREE.Vector2(3,-4),
+                new THREE.Vector2(2,-3),
+                new THREE.Vector2(1,-4),
+                new THREE.Vector2(0,-3),
+                new THREE.Vector2(1,-2),
+                new THREE.Vector2(0,-1)
+            ]
+
+            return evenCrossPoints;
+        },
+
+        GetCross: function() 
+        {
+            var crossPoints = 
+            [
+                new THREE.Vector2(5,0),
+                new THREE.Vector2(19,14),
+                new THREE.Vector2(33,0),
+                new THREE.Vector2(38,5),
+                new THREE.Vector2(24,19),
+                new THREE.Vector2(38,33),
+                new THREE.Vector2(33,38),
+                new THREE.Vector2(19,24),
+                new THREE.Vector2(5,38),
+                new THREE.Vector2(0,33),
+                new THREE.Vector2(14,19),
+                new THREE.Vector2(0,5)
+            ]
+
+            return crossPoints;
+        },
+
+        //Start of Scale functions
+        GetScaledSquare: function(s)
+        {
+            var squarePoints = 
+            [
+                new THREE.Vector2(1-s, 1-s),
+                new THREE.Vector2(1-s, s),
+                new THREE.Vector2(s, s),
+                new THREE.Vector2(s, 1-s)
+            ]
+
+            return squarePoints;
+        },
+
+        GetScaledIsometricTriangle: function(thickness)
+        {
+            var trianglePoints = 
+            [
+                new THREE.Vector2(thickness, thickness),
+                new THREE.Vector2(0.25, 1-(thickness*2)),
+                new THREE.Vector2(0.5-thickness, thickness)
+            ]
+
+            return trianglePoints;
+        }   
+        }
+
+		//Vars
+		var camera, scene, renderer;
+		var mesh;
+		var mouseX, mouseY;
+        var mouseX = 0;
+        var mouseY = 0;
+		var mouseXP, mouseYP;
+        var logoGroup = new THREE.Group();
+
+		init();
+
+		function init() 
+		{
+			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color(0x212121);
+
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			//
+			window.addEventListener( 'resize', onWindowResize, false );
+        }
+        var textGroup = new THREE.Group();
+
+        SetUp();
+
+        function SetUp() 
+        {
+            //MAIN CANAVAS START
+            canvas = new THREE.Group();
+
+            //Making of Objects
+
+            //Text
+            var loader = new THREE.FontLoader();
+            //var textGroup = new THREE.Group();
+            var text;
+            //https://raw.githubusercontent.com/Xobot77/WebDevTesting/master/Wolf_in_the_City_Regular_1.json
+            //https://gist.githubusercontent.com/CTCGraphics/dee7daf5482c48a68410e6d472398df9/raw/5588dcb28020298a21fe766d5ca1308f209febe9/helvetiker_regular.typeface.json
+            loader.load('https://gist.githubusercontent.com/CTCGraphics/dee7daf5482c48a68410e6d472398df9/raw/5588dcb28020298a21fe766d5ca1308f209febe9/helvetiker_regular.typeface.json', function(font) {
+                var xMid; //var xMId,text;
+                var color = 0xefafafa;
+                var matDark = new THREE.LineBasicMaterial({
+                    color: color,
+                    side: THREE.DoubleSide
+                });
+                var matLite = new THREE.MeshBasicMaterial({
+                    color: color,
+                    //transparent: true,
+                    //opacity: 0.4,
+                    side: THREE.DoubleSide
+                });
+
+                var goldy = new THREE.MeshBasicMaterial({ color:  0xd2a15a, side: THREE.DoubleSide }) //0xf1f1f1, 0xd2a15a
+                var scale = 1 / 25;
+
+                var message1 = "FOR";
+                var message2 = "EVERYTHING";
+                var message3 = "DESIGN";
+                
+                //Line 1
+                var shapes = font.generateShapes(message1, 60); //60 /115
+                var geometry = new THREE.ShapeBufferGeometry(shapes);
+
+                geometry.computeBoundingBox();
+                xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+                geometry.translate(xMid, 0, 0);
+
+                text = new THREE.Mesh(geometry, matLite);
+                text.scale.set(scale,scale,scale);
+                text.position.y = 1;
+                text.position.z = 3;
+
+                textGroup.add(text);
+
+                //Line 2
+                var shapes = font.generateShapes(message2, 60);
+                var geometry = new THREE.ShapeBufferGeometry(shapes);
+
+                geometry.computeBoundingBox();
+                xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+                geometry.translate(xMid, 0, 0);
+
+                text = new THREE.Mesh(geometry, goldy);
+                text.scale.set(scale,scale,scale);
+                text.position.y = -2;
+                text.position.z = 1;
+
+                textGroup.add(text);
+
+                //Line 3
+                var shapes = font.generateShapes(message3, 60);
+                var geometry = new THREE.ShapeBufferGeometry(shapes);
+
+                geometry.computeBoundingBox();
+                xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+                geometry.translate(xMid, 0, 0);
+
+                text = new THREE.Mesh(geometry, matLite);
+                text.scale.set(scale,scale,scale);
+                text.position.y = -5;
+                text.position.z = 3;
+
+                textGroup.add(text);
+
+            }); //end load function
+
+            //Logo
+            var texture = new THREE.TextureLoader().load("https://raw.githubusercontent.com/Xobot77/WebDevTesting/master/LogoPNG.png");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1/20,1/10);
+            texture.anisotropy = renderer.getMaxAnisotropy();
+            var rect = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0, 6.2),
+                new THREE.Vector2(10, 6.2),
+                new THREE.Vector2(10, 0)
+            ]
+
+            var material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: texture, opacity: 1, transparent: true }); 
+
+            var shape = new THREE.Shape(rect);
+            var geometry = new THREE.ShapeBufferGeometry(shape);
+
+            var logo = new THREE.Mesh(geometry, material);
+            logo.position.set(-10,-5,19);
+
+            //canvas.add(logo);
+
+            //Logo
+
+            //Logo Text
+            var texture = loader.load("Xo_Text_Logo.png");
+
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1/10,1/10);
+            texture.anisotropy = renderer.getMaxAnisotropy();
+
+            var material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: texture, opacity: 1, transparent: true }); 
+
+            var logoText = new THREE.Mesh(geometry, material);
+
+
+            logoGroup.add(logoText);
+            logoGroup.position.set(-5,-2.5,19);
+            scene.add(logoGroup);
+
+            //scene.add(logo);
+
+            //Center Cross
+            var material = new THREE.MeshBasicMaterial({ color: 0xcc6633 }); 
+            var Shape = new THREE.Shape(Shape2D.GetEvenCross());
+            var geometry = new THREE.ShapeBufferGeometry(Shape);
+
+            var centerCross = new THREE.Mesh(geometry, material);
+            centerCross.position.set(-2,2,0);
+
+            centerCrossGroup = new THREE.Object3D();
+            centerCrossGroup.add(centerCross);
+
+            //Other Cross base
+            var material = new THREE.MeshBasicMaterial({ color: 0xf1f1f1 }); //0xf1f1f1, 0xd2a15a, 
+            var Shape = new THREE.Shape(Shape2D.GetCross());
+            var geometry = new THREE.ShapeBufferGeometry(Shape);
+
+            var cross = new THREE.Mesh(geometry, material);
+            scale = 1 / 10;
+            cross.position.set(-19*scale,-19*scale,0);
+            cross.scale.set(scale, scale, scale);
+
+            originCross = new THREE.Group();
+            originCross.add(cross);
+
+            cross1 = originCross.clone();
+            cross2 = originCross.clone();
+            cross3 = originCross.clone();
+
+            //WireFrame Cubes
+            /*
+            var material = new THREE.MeshBasicMaterial({ color: 0xd2a15a, wireframe: true}); //0xf1f1f1
+            var geometry = new THREE.BoxGeometry(6,6,6);
+
+            var originalCubeWire = new THREE.Mesh(geometry, material);
+            
+            cubeWire1 = originalCubeWire.clone();
+            cubeWire2 = originalCubeWire.clone();
+            cubeWire3 = originalCubeWire.clone();
+            cubeWire4 = originalCubeWire.clone();
+            cubeWire5 = originalCubeWire.clone();
+            cubeWire6 = originalCubeWire.clone();
+
+            var s = 0.95;
+            cubeWire1.scale.set(s,s,s);
+            s = 0.83;
+            cubeWire2.scale.set(s,s,s);
+            s = 0.85;
+            cubeWire3.scale.set(s,s,s);
+            s = 0.92;
+            cubeWire4.scale.set(s,s,s);
+            s = 1;
+            cubeWire5.scale.set(s,s,s);
+
+            //x: up/down y: left/right z: roation radians?
+            cubeWire1.rotation.set(0.3,0.3,0);
+            cubeWire2.rotation.set(0.8,0.8,0);
+            cubeWire3.rotation.set(1,1,0);
+            cubeWire4.rotation.set(0.5,0.1,-0.1);
+            cubeWire5.rotation.set(0,0,0); */
+
+            //Solid Cubes
+            var material = new THREE.MeshBasicMaterial({ color: 0xf1f1f1, wireframe: false}); //0xd2a15a
+            var geometry = new THREE.BoxGeometry(2,2,2);   
+            //var geometry = new THREE.OctahedronBufferGeometry(2, 0); //new THREE.CylinderBufferGeometry( 1, 1, 4, 6 );//new THREE.BoxGeometry(2,2,2);          
+            //var geometry = new THREE.DodecahedronBufferGeometry(2, 0);
+            //var geometry = new THREE.TorusKnotGeometry( 1, 0.2, 100, 16 );
+
+            var originalCube = new THREE.Mesh(geometry, material);
+
+            cube1 = originalCube.clone();
+            cube2 = originalCube.clone();
+            cube3 = originalCube.clone();
+            cube4 = originalCube.clone();
+
+            //New Cubes
+            //Cubes Outside Lines
+            var material = new THREE.MeshBasicMaterial({ color: 0xd2a15a, side: THREE.DoubleSide, wireframe: false })
+            var squarePoints = 
+            [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0, 1),
+                new THREE.Vector2(1, 1),
+                new THREE.Vector2(1, 0)
+            ]
+            shape = new THREE.Shape(squarePoints);
+
+            var thickness = 0.02;
+            
+            smallerShape = new THREE.Shape([new THREE.Vector2(thickness, thickness),
+            new THREE.Vector2(thickness, 1-thickness),
+            new THREE.Vector2(1-thickness, 1-thickness),
+            new THREE.Vector2(1-thickness, thickness)]);
+
+            var triangle1 = 
+            new THREE.Path([
+                new THREE.Vector2(thickness,thickness*14/8),
+                new THREE.Vector2(thickness,1-thickness),
+                new THREE.Vector2(1-thickness*14/8,1-thickness)
+            ]);
+
+            shape.holes.push(smallerShape);
+
+            var triangle2 = 
+            new THREE.Path([
+                new THREE.Vector2(thickness*14/8,thickness),
+                new THREE.Vector2(1-thickness,1-thickness*14/8),
+                new THREE.Vector2(1-thickness,thickness)
+            ]);
+            
+            //shape.holes.push(triangle2);
+
+            square = new THREE.Mesh(new THREE.ShapeBufferGeometry(shape),material);
+            cubeGroup = new THREE.Group();
+            cubeSide1 = square.clone();
+            cubeSide1.rotation.set(0,0,0);
+            cubeSide2 = square.clone();
+            cubeSide2.rotation.set(1.571,0,0);
+            cubeSide2.position.set(0,0,-1);
+            cubeSide3 = square.clone();
+            cubeSide3.rotation.set(0,1.571,0);
+            cubeSide4 = square.clone();
+            cubeSide4.rotation.set(0,0,0);
+            cubeSide4.position.set(0,0,-1);
+            cubeSide5 = square.clone();
+            cubeSide5.rotation.set(1.571,0,0);
+            cubeSide5.position.set(0,1,-1);
+            cubeSide6 = square.clone();
+            cubeSide6.rotation.set(0,1.571,0);
+            cubeSide6.position.set(1,0,0);
+
+            cubeGroup.add(cubeSide1);
+            cubeGroup.add(cubeSide2);
+            cubeGroup.add(cubeSide3);
+            cubeGroup.add(cubeSide4);
+            cubeGroup.add(cubeSide5);
+            cubeGroup.add(cubeSide6);
+
+            cubeGroup.position.set(-1.5,-1.5,-1.5);
+            cubeGroup.scale.set(5,5,5);
+            centeredCubeGroup = new THREE.Group();
+            centeredCubeGroup.add(cubeGroup);
+
+            cubeWire1 = centeredCubeGroup.clone();
+            cubeWire2 = centeredCubeGroup.clone();
+            cubeWire3 = centeredCubeGroup.clone();
+            cubeWire4 = centeredCubeGroup.clone();
+            cubeWire5 = centeredCubeGroup.clone();
+            cubeWire6 = centeredCubeGroup.clone();
+
+            var s = 0.95;
+            cubeWire1.scale.set(s,s,s);
+            s = 0.83;
+            cubeWire2.scale.set(s,s,s);
+            s = 0.85;
+            cubeWire3.scale.set(s,s,s);
+            s = 0.92;
+            cubeWire4.scale.set(s,s,s);
+            s = 1;
+            cubeWire5.scale.set(s,s,s);
+
+            //x: up/down y: left/right z: roation radians?
+            cubeWire1.rotation.set(0.3,0.3,0);
+            cubeWire2.rotation.set(0.8,0.8,0);
+            cubeWire3.rotation.set(1,1,0);
+            cubeWire4.rotation.set(0.5,0.1,-0.1);
+            cubeWire5.rotation.set(0,0,0);
+
+            //Adding of Objects the scence and groups
+            //canvas.add(centerCrossGroup);
+
+            //canvas.add(cross1);
+            canvas.add(cross2);
+            canvas.add(cross3);
+
+            canvas.add(cubeWire1);
+            canvas.add(cubeWire2);
+            canvas.add(cubeWire3);
+            canvas.add(cubeWire4);
+            canvas.add(cubeWire5);
+            //canvas.add(cubeWire6);
+
+            canvas.add(cube1);
+            canvas.add(cube2);
+            canvas.add(cube3);
+            //canvas.add(cube4);
+
+            //canvas.add(textGroup);
+            canvas.position.set(0,-15,0);
+            //logo.position.set(-10,-5,19);
+            //logo.position.set(-10,-20,19);
+
+            canvas2 = new THREE.Group();
+            canvas2.add(canvas);
+            //canvas2.add(logo);
+            canvas2.position.set(0,15,0);
+
+            scene.add(canvas2);
+
+            //positions Max | x: -35, 35 y:20, -20
+            var r = 18;
+            camera.position.set(0,0,48);
+            textGroup.position.set(0,0,12)
+
+            //Ecliptic
+            cubeWire1.position.set(r*Math.cos(0)+3, r*Math.sin(0),4);//1
+            cross3.position.set(r*Math.cos(0.625)+2, r*Math.sin(0.625),3);//2
+            //cubeWire6.position.set(r*Math.cos(1.25), r*Math.sin(1.25)-2,4);
+            cubeWire2.position.set(r*Math.cos(1.25)+1, r*Math.sin(1.25)-2,5);//3
+            cube2.position.set(r*Math.cos(1.9)-1, r*Math.sin(1.9),3);//4
+            cubeWire3.position.set(r*Math.cos(2.5)-2, r*Math.sin(2.5),6);//5
+            //cross1.position.set(r*Math.cos(3.1), r*Math.sin(3.1),0);
+            cube3.position.set(r*Math.cos(3.1)-3, r*Math.sin(3.1),3);//6
+            cubeWire4.position.set(r*Math.cos(3.75)-3, r*Math.sin(3.75),8);//7
+            cross2.position.set(r*Math.cos(4.375)-1, r*Math.sin(4.375),0);//8
+            cubeWire5.position.set(r*Math.cos(5)+1, r*Math.sin(5),10);//9
+            cube1.position.set(r*Math.cos(5.65)+2, r*Math.sin(5.65),3);//10
+            //cube4.position.set(10,4,-3);
+            cube4.position.set(r*Math.cos(0)+3, r*Math.sin(0),4);//1
+
+            //Circular
+            cubeWire1.position.set(r*Math.cos(0), r*Math.sin(0),4);//1
+            cross3.position.set(r*Math.cos(0.625), r*Math.sin(0.625),3);//2
+            cubeWire2.position.set(r*Math.cos(1.25), r*Math.sin(1.25)-2,5);//3
+            cube2.position.set(r*Math.cos(1.9), r*Math.sin(1.9),3);//4
+            cubeWire3.position.set(r*Math.cos(2.5), r*Math.sin(2.5),6);//5
+            cube3.position.set(r*Math.cos(3.1), r*Math.sin(3.1),3);//6
+            cubeWire4.position.set(r*Math.cos(3.75), r*Math.sin(3.75),8);//7
+            cross2.position.set(r*Math.cos(4.375), r*Math.sin(4.375),0);//8
+            cubeWire5.position.set(r*Math.cos(5), r*Math.sin(5),10);//9
+            cube1.position.set(r*Math.cos(5.65), r*Math.sin(5.65),3);//10
+            cube4.position.set(r*Math.cos(0), r*Math.sin(0),4);//1
+        }
+        
+		//game logic
+        var update = function() 
+        {
+            targetY = -mouseX*0.0002;
+            targetX = mouseY*0.00014;
+
+            canvas2.rotation.y += (targetY - canvas2.rotation.y)*0.01;
+            canvas2.rotation.x += (targetX - canvas2.rotation.x)*0.01;
+
+            //Cube ratations
+            cube1.rotation.x += 0.001;
+            cube1.rotation.y += 0.001;
+            cube2.rotation.x += -0.001;
+            cube2.rotation.y += 0.001;
+            cube3.rotation.x += -0.001;
+            cube3.rotation.y += -0.001;
+            cube4.rotation.x += 0.001;
+            cube4.rotation.y += -0.01;
+
+            canvas.rotation.z -= 0.00025;
+
+            //cubeWire1.rotation.x += 0.001;
+            //cubeWire1.rotation.y += -0.001;
+            // cubeWire2.rotation.x += 0.001;
+            // cubeWire2.rotation.y += -0.001;
+            // cubeWire3.rotation.x += 0.001;
+            // cubeWire3.rotation.y += -0.001;
+            // cubeWire4.rotation.x += 0.001;
+            // cubeWire4.rotation.y += -0.001;
+            // cubeWire5.rotation.x += 0.001;
+            // cubeWire5.rotation.y += -0.001;
+            cubeWire6.rotation.z += 0.001;
+            // cubeWire6.rotation.y += -0.001;
+
+            //logo
+            //logoGroup.rotation.z += 0.01;
+
+            document.addEventListener('mousemove', onDocumentMouseMove, true);
+        };
+
+        //draw scene
+        var render = function() 
+        {
+            camera.lookAt(scene.position);
+            renderer.render(scene, camera);
+        };
+
+        // run game loop (update, renderer)
+        var GameLoop = function() {
+            requestAnimationFrame(GameLoop);
+
+            update();
+            render();
+        };
+
+		//#region FUNCTION DUMP
+        function onDocumentMouseMove(event) 
+        {
+            mouseX = event.clientX - (window.innerWidth/2);
+            mouseY = event.clientY - (window.innerHeight/2);
+            //Percent in decimal accross the screen
+            mouseXP = mouseX / window.innerWidth;
+            mouseYP = mouseY / window.innerHeight;
+		}
+
+		function onWindowResize() 
+		{
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+		//#endregion
+
+		GameLoop();
+
+	</script>
+
+</body>
+
+</html>

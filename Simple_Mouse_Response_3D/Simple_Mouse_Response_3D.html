@@ -1,0 +1,165 @@
+<html>
+
+<head>
+    <title>ThreeJs</title>
+
+    <style>
+        body 
+        {
+            margin: 0;
+        }
+        
+        canvas 
+        {
+            width: 100%;
+            height: 100%;
+        }
+        
+        ;
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/103/three.js"></script>
+
+    <script>
+        //setup script
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        var mouseX = 0;
+        var mouseY = 0;
+        var CubeDirection = 1; //Right (up in x)
+        scene.background = new THREE.Color(0x222629);
+        //renderer
+        var renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        //create the shape
+        var geometry = new THREE.BoxGeometry(99, 99, 99);
+
+        //create a material, colour or image texture
+        var material = new THREE.MeshBasicMaterial({ color: 0xcc6633, wireframe: false });
+
+        var cubeMateraials = 
+        [
+            new THREE.MeshBasicMaterial({color: 0x6b6e70,side: THREE.DoubleSide}),
+            new THREE.MeshBasicMaterial({color: 0x474b4f,side: THREE.DoubleSide})
+        ]
+
+        var cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        
+        var loader = new THREE.FontLoader();
+        var lineText = new THREE.Object3D();
+        var text;
+        loader.load('https://gist.githubusercontent.com/CTCGraphics/dee7daf5482c48a68410e6d472398df9/raw/5588dcb28020298a21fe766d5ca1308f209febe9/helvetiker_regular.typeface.json', function(font) {
+            var xMid; //var xMId,text;
+            var color = 0xef1f1f1;
+            var matDark = new THREE.LineBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide
+            });
+            var matLite = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            });
+            var message = "John The Dony Bomb\n   Fozzy The King\n    Chris The Cube";
+            var shapes = font.generateShapes(message, 100);
+            var geometry = new THREE.ShapeBufferGeometry(shapes);
+            geometry.computeBoundingBox();
+            xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+            geometry.translate(xMid, 0, 0);
+            // make shape ( N.B. edge view not visible )
+            text = new THREE.Mesh(geometry, matLite);
+            text.position.z = -150;
+            scene.add(text);
+            // make line shape ( N.B. edge view remains visible )
+            var holeShapes = [];
+            for (var i = 0; i < shapes.length; i++) {
+                var shape = shapes[i];
+                if (shape.holes && shape.holes.length > 0) {
+                    for (var j = 0; j < shape.holes.length; j++) {
+                        var hole = shape.holes[j];
+                        holeShapes.push(hole);
+                    }
+                }
+            }
+            shapes.push.apply(shapes, holeShapes);
+            //var lineText = new THREE.Object3D();
+            for (var i = 0; i < shapes.length; i++) {
+                var shape = shapes[i];
+                var points = shape.getPoints();
+                var geometry = new THREE.BufferGeometry().setFromPoints(points);
+                geometry.translate(xMid, 0, 0);
+                var lineMesh = new THREE.Line(geometry, matDark);
+                lineText.add(lineMesh);
+            }
+            scene.add(lineText);
+        }); //end load function */
+
+        camera.position.set(0, -400, 1500);
+        cube.position.set(0, 200, -75);
+
+        //game logic
+        var update = function() 
+        {
+            //cube.rotation.x = 0.5;
+            //cube.rotation.y += 0.005;
+            //cube.rotation.z = 0.5;
+
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+        };
+
+        //draw scene
+        var render = function() 
+        {
+            console.log(camera.position.x);
+            console.log(camera.rotation);
+
+            camera.position.x += (mouseX - camera.position.x) * 0.01;
+            camera.position.y += (-mouseY - camera.position.y) * 0.01;
+
+            console.log(camera.position.x);
+            console.log(camera.rotation);
+
+            camera.lookAt(scene.position);
+            renderer.render(scene, camera);
+        };
+
+        // run game loop (update, r)
+        var GameLoop = function() {
+            requestAnimationFrame(GameLoop);
+
+            update();
+            render();
+        };
+
+        //#region FUNCTION DUMP
+        function onDocumentMouseMove(event) 
+        {
+            mouseX = event.clientX - (window.innerWidth/2);
+            mouseY = event.clientY - (window.innerHeight/2);
+            //Percent in decimal accross the screen
+            mouseXP = (event.clientX - (window.innerWidth/2)) / window.innerWidth;
+            mouseYP = (event.clientY - (window.innerHeight/2)) / window.innerHeight;
+		}
+
+		function onWindowResize() 
+		{
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+		//#endregion
+
+        GameLoop();
+    </script>
+</body>
+
+</html>

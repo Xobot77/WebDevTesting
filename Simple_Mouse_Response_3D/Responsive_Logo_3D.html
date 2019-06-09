@@ -1,0 +1,157 @@
+<html>
+	<head>
+		<title>ThreeJS</title>
+		<style>
+			body 
+			{
+				margin: 0;
+			}
+			
+			canvas 
+			{
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+
+<body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/103/three.js"></script>
+
+	<script>
+
+		//Vars
+		var camera, scene, renderer;
+		var mesh;
+		var mouseX, mouseY;
+		var mouseX = 0;
+        var mouseY = 0;
+		var mouseXP, mouseYP;
+
+		init();
+
+		function init() 
+		{
+			camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color(0x222629);
+
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+        var canvas = new THREE.Group();
+        var logoGroup = new THREE.Group();
+        
+        SetUp();
+
+        function SetUp()
+        {
+            //Logo
+            var image = "https://raw.githubusercontent.com/Xobot77/WebDevTesting/master/LogoPNG.png";
+            var FullLogo = new THREE.Group();
+            //LoadLogoPart(image, 0, FullLogo);
+
+            //Logo Parts Start
+            var image = "Boxes_FED.png";
+            var Logo_Boxes = new THREE.Group();
+            LoadLogoPart(image, 0, Logo_Boxes);
+
+            var image = "Core_body_FED.png";
+            var Logo_Core = new THREE.Group();
+            LoadLogoPart(image, 5, Logo_Boxes);
+
+            //Camera and Scene
+            canvas.add(FullLogo);
+
+            scene.add(canvas);
+
+            camera.position.set(0,0,175);
+        }
+
+        function LoadLogoPart(image, depth, refference)
+        {
+            var texture = new THREE.TextureLoader().load(image);
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1/192,1/102);
+            texture.anisotropy = renderer.getMaxAnisotropy();
+            var rect = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0, 102),
+                new THREE.Vector2(192, 102),
+                new THREE.Vector2(192, 0)
+            ]
+
+            var material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: texture, opacity: 1, transparent: true }); 
+
+            var shape = new THREE.Shape(rect);
+            var geometry = new THREE.ShapeBufferGeometry(shape);
+
+            var logo = new THREE.Mesh(geometry, material);
+            logo.position.set(-96,-51,depth);
+
+            refference.add(logo);
+        }
+
+		//game logic
+        var update = function() 
+        {
+            targetY = -mouseX*0.0008;
+            targetX = mouseY*0.00056;
+
+            canvas.rotation.y += (targetY - canvas.rotation.y)*0.01;
+            canvas.rotation.x += (targetX - canvas.rotation.x)*0.01;
+
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+        };
+
+		var fixedUpdate = function() 
+        {
+        };
+
+        //draw scene
+        var render = function() 
+        {
+            camera.lookAt(scene.position);
+            renderer.render(scene, camera);
+        };
+
+        // run game loop (update, renderer)
+        var GameLoop = function() {
+            requestAnimationFrame(GameLoop);
+
+            update();
+			fixedUpdate();
+            render();
+        };
+
+		//#region FUNCTION DUMP
+        function onDocumentMouseMove(event) 
+        {
+            mouseX = event.clientX - (window.innerWidth/2);
+            mouseY = event.clientY - (window.innerHeight/2);
+            //Percent in decimal accross the screen
+            mouseXP = (event.clientX - (window.innerWidth/2)) / window.innerWidth;
+            mouseYP = (event.clientY - (window.innerHeight/2)) / window.innerHeight;
+		}
+
+		function onWindowResize() 
+		{
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+		//#endregion
+
+		GameLoop();
+
+	</script>
+
+</body>
+
+</html>
